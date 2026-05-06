@@ -22,11 +22,11 @@ jobs:
       - name: SwiftLint
         run: swiftlint lint --strict
       - name: C shim formatting
-        run: clang-format --dry-run --Werror Sources/CLibUSB/shim.h
-          Sources/CLibUSB/module.modulemap
+        run: |
+          clang-format --dry-run --Werror Sources/CLibUSB/shim.h Sources/CLibUSB/module.modulemap
       - name: Build public symbol graph
-        run: swift build --target SwiftUSB -Xswiftc -emit-symbol-graph -Xswiftc
-          -emit-symbol-graph-dir -Xswiftc .build/symbol-graphs
+        run: |
+          swift build --target SwiftUSB -Xswiftc -emit-symbol-graph -Xswiftc -emit-symbol-graph-dir -Xswiftc .build/symbol-graphs
       - name: Test
         run: swift test
       - name: Create source archive

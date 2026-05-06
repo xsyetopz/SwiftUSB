@@ -22,20 +22,18 @@ jobs:
       - name: SwiftLint
         run: swiftlint lint --strict
       - name: C shim formatting
-        run: clang-format --dry-run --Werror Sources/CLibUSB/shim.h
-          Sources/CLibUSB/module.modulemap
+        run: |
+          clang-format --dry-run --Werror Sources/CLibUSB/shim.h Sources/CLibUSB/module.modulemap
       - name: Build public symbol graph
-        run: swift build --target SwiftUSB -Xswiftc -emit-symbol-graph -Xswiftc
-          -emit-symbol-graph-dir -Xswiftc .build/symbol-graphs
+        run: |
+          swift build --target SwiftUSB -Xswiftc -emit-symbol-graph -Xswiftc -emit-symbol-graph-dir -Xswiftc .build/symbol-graphs
       - name: Test
         run: swift test
       - name: Create source archive
-        run: swift package archive-source --output .build/SwiftUSB-${{ github.ref_name
-          }}.zip
+        run: |
+          swift package archive-source --output ".build/SwiftUSB-${{ github.ref_name }}.zip"
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" .build/SwiftUSB-${{
-          github.ref_name }}.zip --title "SwiftUSB ${{ github.ref_name }}"
-          --notes "Swift Package Manager release for SwiftUSB ${{
-          github.ref_name }}" --verify-tag
+        run: |
+          gh release create "${{ github.ref_name }}" ".build/SwiftUSB-${{ github.ref_name }}.zip" --title "SwiftUSB ${{ github.ref_name }}" --notes "Swift Package Manager release for SwiftUSB ${{ github.ref_name }}" --verify-tag
