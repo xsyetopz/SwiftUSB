@@ -1,0 +1,6 @@
+// Copyright (c) 2026 Krystian J.
+// SPDX-License-Identifier: MIT
+
+module CLibUSB[system] {
+    header "shim.h" link "usb-1.0" export*
+}
