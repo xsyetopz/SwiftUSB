@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag, for example v0.1.0"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -11,8 +17,18 @@ permissions:
 jobs:
   publish:
     runs-on: macos-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag ||
+        github.ref_name }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+      - name: Validate release tag
+        run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          git rev-parse "$RELEASE_TAG^{commit}"
       - name: Install tools
         run: brew install libusb swiftlint clang-format
       - name: Check Swift version file
@@ -31,9 +47,9 @@ jobs:
         run: swift test
       - name: Create source archive
         run: |
-          swift package archive-source --output ".build/SwiftUSB-${{ github.ref_name }}.zip"
+          swift package archive-source --output ".build/SwiftUSB-$RELEASE_TAG.zip"
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ github.ref_name }}" ".build/SwiftUSB-${{ github.ref_name }}.zip" --title "SwiftUSB ${{ github.ref_name }}" --notes "Swift Package Manager release for SwiftUSB ${{ github.ref_name }}" --verify-tag
+          gh release create "$RELEASE_TAG" ".build/SwiftUSB-$RELEASE_TAG.zip" --title "SwiftUSB $RELEASE_TAG" --notes "Swift Package Manager release for SwiftUSB $RELEASE_TAG" --verify-tag
