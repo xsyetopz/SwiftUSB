@@ -1,6 +1,6 @@
 # ``SwiftUSB``
 
-SwiftUSB is a Swift 6.2 wrapper around libusb 1.0 for applications that need direct USB device access.
+SwiftUSB is a Swift 6.1 wrapper around libusb 1.0 for applications that need direct USB device access.
 
 Use ``USBContext`` to enumerate devices, ``USBDevice`` to inspect descriptors, and ``USBDeviceHandle`` to claim interfaces and perform transfers.
 

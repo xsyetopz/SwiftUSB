@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Krystian J.
 // SPDX-License-Identifier: MIT
 
-// swift-tools-version: 6.2
+// swift-tools-version: 6.1
 import Foundation
 import PackageDescription
 
