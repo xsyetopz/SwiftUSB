@@ -3,11 +3,11 @@ name: Release
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+"
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing release tag, for example v0.1.0"
+        description: "Existing release tag, for example 0.1.0"
         required: true
         type: string
 
@@ -27,7 +27,7 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
       - name: Validate release tag
         run: |
-          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$RELEASE_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           git rev-parse "$RELEASE_TAG^{commit}"
       - name: Install tools
         run: brew install libusb swiftlint clang-format

@@ -12,7 +12,7 @@ Swift Package Manager discovers releases from semantic version Git tags such as 
 
 2. Commit the release-ready package state.
 
-3. Create a semantic version tag and push `main` with tags.
+3. Create a plain semantic version tag such as `0.1.0` and push `main` with tags. Swift Package Manager resolves `0.1.0`, not `v0.1.0`.
 
 4. Consumers can add SwiftUSB with:
 
