@@ -215,7 +215,21 @@ public final class USBDevice: @unchecked Sendable {
     }
     defer { libusb_free_config_descriptor(desc) }
 
-    return USBConfigurationDescriptor(descriptor: desc.pointee)
+    return USBConfigurationDescriptor(descriptor: desc)
+  }
+
+  /// Reads the descriptor for the currently active USB configuration.
+  public func getActiveConfigurationDescriptor() throws -> USBConfigurationDescriptor {
+    var configDesc: UnsafeMutablePointer<libusb_config_descriptor>?
+    let result = libusb_get_active_config_descriptor(device, &configDesc)
+    try USBError.check(result)
+
+    guard let desc = configDesc else {
+      throw USBError(message: "Failed to get active configuration descriptor")
+    }
+    defer { libusb_free_config_descriptor(desc) }
+
+    return USBConfigurationDescriptor(descriptor: desc)
   }
 
   private func getHandle() throws -> USBDeviceHandle {
@@ -318,26 +332,58 @@ public enum USBSpeed {
 
 /// A parsed USB configuration descriptor (USB spec section 9.6.3).
 /// Returned by ``USBDevice/getConfigurationDescriptor(index:)``.
-public struct USBConfigurationDescriptor: @unchecked Sendable {
-  let descriptor: libusb_config_descriptor
+public struct USBConfigurationDescriptor: Sendable {
+  public let bLength: UInt8
+  public let bDescriptorType: UInt8
+  public let wTotalLength: UInt16
+  public let bNumInterfaces: UInt8
+  public let bConfigurationValue: UInt8
+  public let iConfiguration: UInt8
+  public let bmAttributes: UInt8
+  public let maxPower: UInt8
+  public let interfaces: [USBInterface]
 
-  init(descriptor: libusb_config_descriptor) { self.descriptor = descriptor }
+  init(descriptor: UnsafePointer<libusb_config_descriptor>) {
+    let value = descriptor.pointee
+    self.bLength = value.bLength
+    self.bDescriptorType = value.bDescriptorType
+    self.wTotalLength = value.wTotalLength
+    self.bNumInterfaces = value.bNumInterfaces
+    self.bConfigurationValue = value.bConfigurationValue
+    self.iConfiguration = value.iConfiguration
+    self.bmAttributes = value.bmAttributes
+    self.maxPower = value.MaxPower
 
-  public var bLength: UInt8 { descriptor.bLength }
+    guard let interfacePointer = value.interface else {
+      self.interfaces = []
+      return
+    }
+    var alternates: [USBInterface] = []
+    for interfaceIndex in 0..<Int(value.bNumInterfaces) {
+      let interface = interfacePointer.advanced(by: interfaceIndex).pointee
+      guard let alternatePointer = interface.altsetting else { continue }
+      for alternateIndex in 0..<Int(interface.num_altsetting) {
+        alternates.append(USBInterface(descriptor: alternatePointer.advanced(by: alternateIndex)))
+      }
+    }
+    self.interfaces = alternates
+  }
 
-  public var bDescriptorType: UInt8 { descriptor.bDescriptorType }
-
-  public var wTotalLength: UInt16 { descriptor.wTotalLength }
-
-  public var bNumInterfaces: UInt8 { descriptor.bNumInterfaces }
-
-  public var bConfigurationValue: UInt8 { descriptor.bConfigurationValue }
-
-  public var iConfiguration: UInt8 { descriptor.iConfiguration }
-
-  public var bmAttributes: UInt8 { descriptor.bmAttributes }
-
-  public var maxPower: UInt8 { descriptor.MaxPower }
+  init(
+    bConfigurationValue: UInt8,
+    bNumInterfaces: UInt8,
+    interfaces: [USBInterface]
+  ) {
+    self.bLength = 9
+    self.bDescriptorType = 2
+    self.wTotalLength = 9
+    self.bNumInterfaces = bNumInterfaces
+    self.bConfigurationValue = bConfigurationValue
+    self.iConfiguration = 0
+    self.bmAttributes = 0x80
+    self.maxPower = 0
+    self.interfaces = interfaces
+  }
 }
 
 extension USBDevice {

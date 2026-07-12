@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing release tag, for example 0.1.0"
+        description: "Existing release tag, for example 0.1.1"
         required: true
         type: string
 
@@ -25,10 +25,15 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
-      - name: Validate release tag
+      - name: Validate release state
         run: |
           [[ "$RELEASE_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          git rev-parse "$RELEASE_TAG^{commit}"
+          test "$(cat VERSION)" = "$RELEASE_TAG"
+          test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$(git rev-parse HEAD)"
+          git fetch origin main --no-tags
+          git merge-base --is-ancestor HEAD origin/main
+          ./scripts/bump-version.py --check
+          ./scripts/bump-version.py --release-notes > .build-release-notes.md
       - name: Install tools
         run: brew install libusb swiftlint clang-format
       - name: Check Swift version file
@@ -52,4 +57,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$RELEASE_TAG" ".build/SwiftUSB-$RELEASE_TAG.zip" --title "SwiftUSB $RELEASE_TAG" --notes "Swift Package Manager release for SwiftUSB $RELEASE_TAG" --verify-tag
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" ".build/SwiftUSB-$RELEASE_TAG.zip" --clobber
+            gh release edit "$RELEASE_TAG" --title "SwiftUSB $RELEASE_TAG" --notes-file .build-release-notes.md --verify-tag
+          else
+            gh release create "$RELEASE_TAG" ".build/SwiftUSB-$RELEASE_TAG.zip" --title "SwiftUSB $RELEASE_TAG" --notes-file .build-release-notes.md --verify-tag
+          fi

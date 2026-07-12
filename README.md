@@ -1,6 +1,6 @@
 # SwiftUSB
 
-SwiftUSB is a Swift 6.1 wrapper around libusb 1.0, shaped as a pyusb-like package for Swift programs. It provides a small, Swift-native API for listing USB devices, opening device handles, claiming interfaces, and issuing control or interrupt transfers.
+SwiftUSB is a Swift 6.1 wrapper around libusb 1.0, shaped as a pyusb-like package for Swift programs. It provides a small, Swift-native API for listing USB devices, reading owned configuration, interface, alternate-setting, and endpoint descriptors, opening device handles, claiming interfaces, and issuing control or interrupt transfers.
 
 ## Requirements
 
@@ -43,7 +43,7 @@ Use a local checkout during development:
 Use the published repository after tagging a release:
 
 ```swift
-.package(url: "https://github.com/xsyetopz/SwiftUSB.git", from: "0.1.0")
+.package(url: "https://github.com/xsyetopz/SwiftUSB.git", from: "0.1.1")
 ```
 
 Add the library product to the target that talks to USB devices:

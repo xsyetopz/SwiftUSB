@@ -17,7 +17,7 @@ Swift Package Manager discovers releases from semantic version Git tags such as 
 4. Consumers can add SwiftUSB with:
 
    ```swift
-   .package(url: "https://github.com/xsyetopz/SwiftUSB.git", from: "0.1.0")
+   .package(url: "https://github.com/xsyetopz/SwiftUSB.git", from: "0.1.1")
    ```
 
 ## Local development

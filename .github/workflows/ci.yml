@@ -8,11 +8,16 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Validate version surfaces
+        run: ./scripts/bump-version.py --check
       - name: Install tools
         run: brew install libusb swiftlint clang-format
       - name: Check Swift version file

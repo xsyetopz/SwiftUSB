@@ -18,3 +18,16 @@ if let device = devices.first {
 ```
 
 Install libusb before building the package. On macOS, use `brew install libusb`.
+
+## Inspect the active configuration
+
+Configuration descriptors own their parsed interface, alternate-setting, and endpoint values, so they remain valid after libusb releases its descriptor allocation.
+
+```swift
+let configuration = try device.getActiveConfigurationDescriptor()
+for interface in configuration.interfaces {
+  for endpoint in interface.endpoints() {
+    print(interface.bInterfaceNumber, endpoint.bEndpointAddress)
+  }
+}
+```

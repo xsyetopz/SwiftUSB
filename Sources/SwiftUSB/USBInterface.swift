@@ -20,7 +20,7 @@ public struct USBInterface: Sendable {
   public let iInterface: UInt8
   public let extraDescriptors: Data?
 
-  private var cachedEndpoints: [USBEndpoint]?
+  private let endpointDescriptors: [USBEndpoint]
 
   /// Creates an interface from a raw libusb descriptor pointer.
   public init(descriptor: UnsafePointer<libusb_interface_descriptor>) {
@@ -38,38 +38,44 @@ public struct USBInterface: Sendable {
       from: (descriptor.pointee.extra_length, descriptor.pointee.extra)
     )
 
-    self.cachedEndpoints = nil
+    if let endpointPointer = descriptor.pointee.endpoint {
+      self.endpointDescriptors = (0..<Int(descriptor.pointee.bNumEndpoints)).map { index in
+        USBEndpoint(descriptor: endpointPointer.advanced(by: index))
+      }
+    } else {
+      self.endpointDescriptors = []
+    }
   }
 
-  private mutating func loadEndpoints(from descriptor: UnsafePointer<libusb_interface_descriptor>) {
-    guard bNumEndpoints > 0 else {
-      cachedEndpoints = []
-      return
-    }
-
-    var endpoints: [USBEndpoint] = []
-
-    for i in 0..<Int(bNumEndpoints) {
-      let endpointPtr = descriptor.pointee.endpoint.advanced(by: i)
-      let endpointDescriptor = USBEndpoint(descriptor: endpointPtr)
-      endpoints.append(endpointDescriptor)
-    }
-
-    cachedEndpoints = endpoints
+  init(
+    bInterfaceNumber: UInt8,
+    bAlternateSetting: UInt8,
+    bInterfaceClass: UInt8,
+    endpoints: [USBEndpoint]
+  ) {
+    self.bLength = 9
+    self.bDescriptorType = 4
+    self.bInterfaceNumber = bInterfaceNumber
+    self.bAlternateSetting = bAlternateSetting
+    self.bNumEndpoints = UInt8(endpoints.count)
+    self.bInterfaceClass = bInterfaceClass
+    self.bInterfaceSubClass = 0
+    self.bInterfaceProtocol = 0
+    self.iInterface = 0
+    self.extraDescriptors = nil
+    self.endpointDescriptors = endpoints
   }
 
   /// Returns all endpoints for this interface, or an empty array when none are available.
   public func endpoints() -> [USBEndpoint] {
-    if let endpoints = cachedEndpoints { return endpoints }
-    return []
+    endpointDescriptors
   }
 
   /// Returns the endpoint at the given index, or nil when the index is out of range.
   public func endpoint(at index: Int) -> USBEndpoint? {
-    guard index >= 0, index < Int(bNumEndpoints) else { return nil }
+    guard index >= 0, index < endpointDescriptors.count else { return nil }
 
-    if let endpoints = cachedEndpoints, index < endpoints.count { return endpoints[index] }
-    return nil
+    return endpointDescriptors[index]
   }
 
   /// Activates this alternate setting on the given device handle.
