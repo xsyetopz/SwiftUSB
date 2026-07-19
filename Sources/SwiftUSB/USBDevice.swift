@@ -10,7 +10,8 @@ import Foundation
 /// plus methods for opening the device, reading string descriptors, and querying driver state.
 /// Call ``open()`` to get a ``USBDeviceHandle`` for sending and receiving data.
 public final class USBDevice: @unchecked Sendable {
-  let device: OpaquePointer
+  private let session: USBDeviceSession
+  var device: OpaquePointer { session.device }
   public let bLength: UInt8
   public let bDescriptorType: UInt8
   public let bcdUSB: UInt16
@@ -32,8 +33,8 @@ public final class USBDevice: @unchecked Sendable {
 
   private var cachedHandle: USBDeviceHandle?
 
-  init(device: OpaquePointer, descriptor: libusb_device_descriptor) {
-    self.device = device
+  init(session: USBDeviceSession, descriptor: libusb_device_descriptor) {
+    self.session = session
     self.bLength = descriptor.bLength
     self.bDescriptorType = descriptor.bDescriptorType
     self.bcdUSB = descriptor.bcdUSB
@@ -49,10 +50,10 @@ public final class USBDevice: @unchecked Sendable {
     self.iSerialNumber = descriptor.iSerialNumber
     self.bNumConfigurations = descriptor.bNumConfigurations
 
-    self.bus = libusb_get_bus_number(device)
-    self.address = libusb_get_device_address(device)
-    self.port = libusb_get_port_number(device)
-    self.speed = USBSpeed(libusb_get_device_speed(device))
+    self.bus = libusb_get_bus_number(session.device)
+    self.address = libusb_get_device_address(session.device)
+    self.port = libusb_get_port_number(session.device)
+    self.speed = USBSpeed(libusb_get_device_speed(session.device))
   }
 
   public var deviceClass: UInt8 { bDeviceClass }
@@ -83,7 +84,7 @@ public final class USBDevice: @unchecked Sendable {
     let result = libusb_open(device, &handle)
     try USBError.check(result)
     guard let h = handle else { throw USBError(message: "Failed to open device") }
-    return USBDeviceHandle(handle: h)
+    return USBDeviceHandle(handle: h, session: session)
   }
 
   /// Opens the device and detaches any kernel driver from interface 0, then returns a handle.
@@ -94,7 +95,7 @@ public final class USBDevice: @unchecked Sendable {
     try USBError.check(result)
     guard let h = handle else { throw USBError(message: "Failed to open device") }
 
-    let handleObj = USBDeviceHandle(handle: h)
+    let handleObj = USBDeviceHandle(handle: h, session: session)
     try handleObj.detachKernelDriver(interface: 0)
     return handleObj
   }

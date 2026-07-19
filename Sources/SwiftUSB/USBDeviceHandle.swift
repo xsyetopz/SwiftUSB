@@ -9,20 +9,32 @@ import Foundation
 /// Created by ``USBDevice/open()`` or ``USBDevice/openWithCapture()``.
 /// All claimed interfaces are released and the libusb handle is closed automatically on dealloc.
 public final class USBDeviceHandle: @unchecked Sendable {
+  typealias CloseHandle = (OpaquePointer) -> Void
+
   let handle: OpaquePointer
   var claimedInterfaces: Set<Int>
 
+  private let session: USBDeviceSession
+  private let closeHandle: CloseHandle
   private var isHandleOpen: Bool = true
 
-  init(handle: OpaquePointer) {
+  init(
+    handle: OpaquePointer,
+    session: USBDeviceSession,
+    closeHandle: @escaping CloseHandle = libusb_close
+  ) {
     self.handle = handle
+    self.session = session
+    self.closeHandle = closeHandle
     self.claimedInterfaces = []
   }
 
   deinit {
-    for interface in claimedInterfaces { libusb_release_interface(handle, Int32(interface)) }
-    libusb_close(handle)
-    isHandleOpen = false
+    withExtendedLifetime(session) {
+      for interface in claimedInterfaces { libusb_release_interface(handle, Int32(interface)) }
+      closeHandle(handle)
+      isHandleOpen = false
+    }
   }
 
   /// True while the underlying libusb handle is valid (before ``resetDevice()`` or dealloc).

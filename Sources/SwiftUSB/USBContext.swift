@@ -188,19 +188,19 @@ public final class USBContext: @unchecked Sendable {
     for i in 0..<count {
       guard let device = deviceList[i] else { continue }
 
-      guard let descriptor = self.createDescriptor(for: device, at: i) else { continue }
+      guard let descriptor = self.descriptor(for: device) else { continue }
 
       if !deviceMatchesFilters(
-        descriptor: descriptor.pointee,
+        descriptor: descriptor,
         vendorId: vendorId,
         productId: productId,
         deviceClass: deviceClass
       ) {
-        descriptor.deallocate()
         continue
       }
 
-      continuation.yield(USBDevice(device: device, descriptor: descriptor.pointee))
+      let session = USBDeviceSession(device: device, contextOwner: self)
+      continuation.yield(USBDevice(session: session, descriptor: descriptor))
       deviceCount += 1
 
       if !findAll { break }
@@ -209,17 +209,9 @@ public final class USBContext: @unchecked Sendable {
     return deviceCount
   }
 
-  private func createDescriptor(for device: OpaquePointer, at index: Int) -> UnsafeMutablePointer<
-    libusb_device_descriptor
-  >? {
-    let descriptor = UnsafeMutablePointer<libusb_device_descriptor>.allocate(capacity: 1)
-    let result = libusb_get_device_descriptor(device, descriptor)
-
-    guard result == 0 else {
-      descriptor.deallocate()
-      return nil
-    }
-
+  private func descriptor(for device: OpaquePointer) -> libusb_device_descriptor? {
+    var descriptor = libusb_device_descriptor()
+    guard libusb_get_device_descriptor(device, &descriptor) == 0 else { return nil }
     return descriptor
   }
 

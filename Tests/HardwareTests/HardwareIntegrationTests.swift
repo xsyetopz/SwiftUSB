@@ -37,4 +37,14 @@ import Testing
     for await _ in context.findDevices(vendorId: 0xFFFF, productId: 0xFFFF) { count += 1 }
     #expect(count == 0)
   }
+
+  @Test("devices discovered by a temporary context remain usable")
+  func discoveredDevicesOutliveContext() async throws {
+    let devices = try await USBDevice.findAll()
+    let descriptorResults = devices.map { device in
+      Result { try device.getActiveConfigurationDescriptor() }
+    }
+
+    #expect(descriptorResults.count == devices.count)
+  }
 }
