@@ -1,6 +1,10 @@
 # SwiftUSB
 
-SwiftUSB is a Swift 6.1 wrapper around libusb 1.0, shaped as a pyusb-like package for Swift programs. It provides a small, Swift-native API for listing USB devices, reading owned configuration, interface, alternate-setting, and endpoint descriptors, opening device handles, claiming interfaces, and issuing control or interrupt transfers.
+SwiftUSB is a Swift 6.1 wrapper around libusb 1.0, shaped as a pyusb-like
+package for Swift programs. It provides a small, Swift-native API for listing
+USB devices, reading owned configuration, interface, alternate-setting, and
+endpoint descriptors, opening device handles, claiming interfaces, and issuing
+control or interrupt transfers.
 
 ## Requirements
 
@@ -28,9 +32,12 @@ swift test
 
 ## Documentation
 
-SwiftUSB ships DocC documentation in `Sources/SwiftUSB/SwiftUSB.docc`. CI also builds a public symbol graph so publish candidates include generated API documentation evidence.
+SwiftUSB ships DocC documentation in `Sources/SwiftUSB/SwiftUSB.docc`. CI also
+builds a public symbol graph so publish candidates include generated API
+documentation evidence.
 
-Hardware tests live in `Tests/HardwareTests`. They expect a connected USB device that matches the test probe requirements.
+Hardware tests live in `Tests/HardwareTests`. They expect a connected USB
+device that matches the test probe requirements.
 
 ## Package Use
 
@@ -54,7 +61,10 @@ Add the library product to the target that talks to USB devices:
 
 ## Publishing
 
-See `docs/PUBLISHING.md` for the release checklist. Swift Package Manager consumes packages from Git tags. For the first public release, verify `swift test`, push the repository, then tag a semantic version such as `0.1.0`. Consumers can depend on the Git URL with `from: "0.1.0"`.
+See `docs/PUBLISHING.md` for the release checklist. Swift Package Manager
+consumes packages from Git tags. For the first public release, verify
+`swift test`, push the repository, then tag a semantic version such as `0.1.0`.
+Consumers can depend on the Git URL with `from: "0.1.0"`.
 
 ## License
 
