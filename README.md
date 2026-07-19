@@ -50,7 +50,7 @@ Use a local checkout during development:
 Use the published repository after tagging a release:
 
 ```swift
-.package(url: "https://github.com/xsyetopz/SwiftUSB.git", from: "0.1.1")
+.package(url: "https://github.com/xsyetopz/SwiftUSB.git", from: "0.1.2")
 ```
 
 Add the library product to the target that talks to USB devices:
@@ -62,9 +62,9 @@ Add the library product to the target that talks to USB devices:
 ## Publishing
 
 See `docs/PUBLISHING.md` for the release checklist. Swift Package Manager
-consumes packages from Git tags. For the first public release, verify
-`swift test`, push the repository, then tag a semantic version such as `0.1.0`.
-Consumers can depend on the Git URL with `from: "0.1.0"`.
+consumes packages from Git tags. Prepare and merge the versioned release state,
+then run the **Release** workflow from `main`. Actions runs the full checks
+before it creates the semantic version tag and GitHub Release.
 
 ## License
 

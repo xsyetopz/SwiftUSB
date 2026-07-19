@@ -1,24 +1,31 @@
 # Publishing SwiftUSB
 
-Swift Package Manager discovers releases from semantic version Git tags such as `0.1.0`, `0.1.1`, and `1.0.0`.
+Swift Package Manager discovers releases from semantic version Git tags such as
+`0.1.0`, `0.1.1`, and `1.0.0`.
 
 ## Release checklist
 
-1. Run the package tests:
+1. Synchronize the release version across the package, update `CHANGELOG.md`,
+   and commit the release-ready state:
 
    ```sh
-   swift test
+   ./scripts/bump-version.py 0.1.2
    ```
 
-2. Commit the release-ready package state.
+2. Merge the release commit into `main` and wait for CI to pass.
 
-3. Create a plain semantic version tag such as `0.1.0` and push `main` with tags. Swift Package Manager resolves `0.1.0`, not `v0.1.0`.
+3. In GitHub Actions, run the **Release** workflow from `main` and enter the
+   version. The workflow validates current `main`, reruns the full checks,
+   creates the source archive, and then creates both the plain semantic version
+   tag and GitHub Release. Do not create or push the release tag manually.
 
-4. Consumers can add SwiftUSB with:
+Swift Package Manager resolves `0.1.2`, not `v0.1.2`.
 
-   ```swift
-   .package(url: "https://github.com/xsyetopz/SwiftUSB.git", from: "0.1.1")
-   ```
+Consumers can add SwiftUSB with:
+
+```swift
+.package(url: "https://github.com/xsyetopz/SwiftUSB.git", from: "0.1.2")
+```
 
 ## Local development
 
@@ -28,4 +35,5 @@ OpenJoystickDriver can consume a sibling checkout while SwiftUSB is developed lo
 .package(path: "../SwiftUSB")
 ```
 
-Keep the package manifest free of OpenJoystickDriver-only paths so the repository stays usable by other Swift Package Manager clients.
+Keep the package manifest free of OpenJoystickDriver-only paths so the
+repository stays usable by other Swift Package Manager clients.

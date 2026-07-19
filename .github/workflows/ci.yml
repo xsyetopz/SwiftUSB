@@ -3,8 +3,6 @@ name: CI
 on:
   push:
     branches: [ main ]
-    tags:
-      - "[0-9]+.[0-9]+.[0-9]+"
   pull_request:
     branches: [ main ]
 
@@ -15,7 +13,7 @@ jobs:
   validate:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Validate version surfaces
         run: ./scripts/bump-version.py --check
       - name: Install tools
@@ -34,6 +32,3 @@ jobs:
           swift build --target SwiftUSB -Xswiftc -emit-symbol-graph -Xswiftc -emit-symbol-graph-dir -Xswiftc .build/symbol-graphs
       - name: Test
         run: swift test
-      - name: Create source archive
-        if: startsWith(github.ref, 'refs/tags/')
-        run: swift package archive-source --output .build/SwiftUSB.zip
